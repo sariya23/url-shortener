@@ -1,35 +1,43 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
-
-	"github.com/ilyakaznacheev/cleanenv"
+	"os"
+	"url-shortener/internal/config"
 )
 
-// func main() {
-// 	// TODO: init config: cleanenv
-
-// 	// TODO: init logger: slog
-
-// 	// TODO: init storage
-
-// 	// TODO: init router
-
-// 	// TODO: run server
-// }
-
-type ConfigDatabase struct {
-	Port string `yaml:"port" env:"PORT" env-default:"5432"`
-}
+const (
+	envLocal = "local"
+	envDev   = "dev"
+)
 
 func main() {
-	var cfg ConfigDatabase
-	err := cleanenv.ReadConfig("config.yaml", &cfg)
+	config := config.MustLoad()
 
-	if err != nil {
-		fmt.Println(err)
+	log := setUpLogger(config.Env)
+
+	log.Info("starting url-shortener", slog.String("env", config.Env))
+	log.Debug("debuf messages are enabled")
+
+	// TODO: init logger: slog
+
+	// TODO: init storage: sqlite
+
+	// TODO: init router: chi
+
+	// TODO: run server
+}
+
+func setUpLogger(env string) *slog.Logger {
+	var logger *slog.Logger
+	handlerOptions := &slog.HandlerOptions{Level: slog.LevelDebug}
+
+	switch env {
+	case envLocal:
+		logger = slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
+	case envDev:
+		logger = slog.New(slog.NewJSONHandler(os.Stdout, handlerOptions))
 	}
 
-	slog.Info(cfg)
+	return logger
 }
