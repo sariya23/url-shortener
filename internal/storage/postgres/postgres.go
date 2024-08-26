@@ -25,13 +25,19 @@ func New(ctx context.Context, storagePath string) (*Storage, func(conn *pgx.Conn
 		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
-	_, err = conn.Query(ctx, `
+	_, err = conn.Exec(ctx, `
 	create table if not exists url (
 		url_id bigint generated always as identity primary key,
 		alias text not null unique,
 		url text not null
 	);
 	`)
+
+	if err != nil {
+		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
+	_, err = conn.Exec(ctx, `create unique index if not exists url_idx on url(alias)`)
 
 	if err != nil {
 		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
