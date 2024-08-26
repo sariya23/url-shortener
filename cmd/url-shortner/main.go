@@ -36,6 +36,7 @@ func main() {
 		log.Error("failed to init storage", xslog.Err(err))
 		os.Exit(1)
 	}
+	log.Info("Storage init success. Create table and index")
 	_ = storage
 
 	// TODO: init storage: sqlite
