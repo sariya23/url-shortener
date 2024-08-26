@@ -30,7 +30,7 @@ func main() {
 	log.Debug("debug messages are enabled")
 
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
-	defer cancel(storage.Connection)
+	defer cancel(*storage)
 
 	if err != nil {
 		log.Error("failed to init storage", xslog.Err(err))

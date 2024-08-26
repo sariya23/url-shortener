@@ -8,13 +8,13 @@ import (
 )
 
 type Storage struct {
-	Connection *pgx.Conn
+	connection *pgx.Conn
 }
 
-func New(ctx context.Context, storagePath string) (*Storage, func(conn *pgx.Conn), error) {
+func New(ctx context.Context, storagePath string) (*Storage, func(s Storage), error) {
 	const operationPlace = "storage.postgres.New"
-	cancel := func(conn *pgx.Conn) {
-		err := conn.Close(ctx)
+	cancel := func(s Storage) {
+		err := s.connection.Close(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -22,7 +22,7 @@ func New(ctx context.Context, storagePath string) (*Storage, func(conn *pgx.Conn
 	conn, err := pgx.Connect(ctx, storagePath)
 
 	if err != nil {
-		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
+		return &Storage{connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	_, err = conn.Exec(ctx, `
@@ -34,14 +34,14 @@ func New(ctx context.Context, storagePath string) (*Storage, func(conn *pgx.Conn
 	`)
 
 	if err != nil {
-		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
+		return &Storage{connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	_, err = conn.Exec(ctx, `create unique index if not exists url_idx on url(alias)`)
 
 	if err != nil {
-		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
+		return &Storage{connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
-	return &Storage{Connection: conn}, cancel, nil
+	return &Storage{connection: conn}, cancel, nil
 }
