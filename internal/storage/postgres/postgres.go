@@ -11,21 +11,21 @@ type Storage struct {
 	Connection *pgx.Conn
 }
 
-func New(storagePath string) (*Storage, func(conn *pgx.Conn), error) {
+func New(ctx context.Context, storagePath string) (*Storage, func(conn *pgx.Conn), error) {
 	const operationPlace = "storage.postgres.New"
 	cancel := func(conn *pgx.Conn) {
-		err := conn.Close(context.Background())
+		err := conn.Close(ctx)
 		if err != nil {
 			panic(err)
 		}
 	}
-	conn, err := pgx.Connect(context.Background(), storagePath)
+	conn, err := pgx.Connect(ctx, storagePath)
 
 	if err != nil {
 		return &Storage{Connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
-	_, err = conn.Query(context.Background(), `
+	_, err = conn.Query(ctx, `
 	create table if not exists url (
 		url_id bigint generated always as identity primary key,
 		alias text not null unique,

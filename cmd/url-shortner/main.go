@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"url-shortener/internal/config"
@@ -16,6 +17,7 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
 	err := godotenv.Load("config/.env")
 	if err != nil {
 		panic(err)
@@ -27,8 +29,9 @@ func main() {
 	log.Info("starting url-shortener", slog.String("env", config.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, cancel, err := postgres.New(os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(storage.Connection)
+
 	if err != nil {
 		log.Error("failed to init storage", xslog.Err(err))
 		os.Exit(1)
