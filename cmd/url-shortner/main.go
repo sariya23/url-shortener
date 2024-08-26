@@ -39,8 +39,6 @@ func main() {
 	log.Info("Storage init success. Create table and index")
 	_ = storage
 
-	// TODO: init storage: sqlite
-
 	// TODO: init router: chi
 
 	// TODO: run server
