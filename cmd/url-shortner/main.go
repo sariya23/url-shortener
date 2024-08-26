@@ -27,7 +27,8 @@ func main() {
 	log.Info("starting url-shortener", slog.String("env", config.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, err := postgres.New(os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.New(os.Getenv("DATABASE_URL"))
+	defer cancel(storage.Connection)
 	if err != nil {
 		log.Error("failed to init storage", xslog.Err(err))
 		os.Exit(1)
