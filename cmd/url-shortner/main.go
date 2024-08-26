@@ -5,7 +5,7 @@ import (
 	"os"
 	"url-shortener/internal/config"
 	"url-shortener/internal/lib/logger/xslog"
-	"url-shortener/internal/storage/sqlite"
+	"url-shortener/internal/storage/postgres"
 )
 
 const (
@@ -21,7 +21,7 @@ func main() {
 	log.Info("starting url-shortener", slog.String("env", config.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, err := sqlite.New(config.StoragePath)
+	storage, err := postgres.New(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Error("failed to init storage", xslog.Err(err))
 		os.Exit(1)
