@@ -6,6 +6,8 @@ import (
 	"url-shortener/internal/config"
 	"url-shortener/internal/lib/logger/xslog"
 	"url-shortener/internal/storage/postgres"
+
+	"github.com/joho/godotenv"
 )
 
 const (
@@ -14,6 +16,10 @@ const (
 )
 
 func main() {
+	err := godotenv.Load("config/.env")
+	if err != nil {
+		panic(err)
+	}
 	config := config.MustLoad()
 
 	log := setUpLogger(config.Env)
