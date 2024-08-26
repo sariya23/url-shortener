@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"os"
 	"url-shortener/internal/config"
+	"url-shortener/internal/lib/logger/xslog"
+	"url-shortener/internal/storage/sqlite"
 )
 
 const (
@@ -17,9 +19,14 @@ func main() {
 	log := setUpLogger(config.Env)
 
 	log.Info("starting url-shortener", slog.String("env", config.Env))
-	log.Debug("debuf messages are enabled")
+	log.Debug("debug messages are enabled")
 
-	// TODO: init logger: slog
+	storage, err := sqlite.New(config.StoragePath)
+	if err != nil {
+		log.Error("failed to init storage", xslog.Err(err))
+		os.Exit(1)
+	}
+	_ = storage
 
 	// TODO: init storage: sqlite
 
