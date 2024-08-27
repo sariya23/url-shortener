@@ -37,7 +37,6 @@ func main() {
 		os.Exit(1)
 	}
 	log.Info("Storage init success. Create table and index")
-	_ = storage
 
 	// TODO: init router: chi
 
