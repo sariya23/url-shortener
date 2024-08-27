@@ -67,3 +67,19 @@ func (s *Storage) SaveURL(ctx context.Context, urlToSave string, alias string) (
 
 	return insertedId, nil
 }
+
+func (s *Storage) GetURLByAlias(ctx context.Context, alias string) (string, error) {
+	const operationPlace = "storage.postgres.GetURLByAlias"
+	var urlByAlias string
+
+	query := `select url from url where alias=$1`
+	row, err := s.connection.Query(ctx, query, alias)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	defer row.Close()
+	row.Next()
+	row.Scan(&urlByAlias)
+
+	return urlByAlias, nil
+}
