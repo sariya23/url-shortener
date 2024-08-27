@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"url-shortener/internal/config"
+	mwLogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/xslog"
 	"url-shortener/internal/storage/postgres"
 
@@ -47,7 +48,7 @@ func main() {
 	// Добавляет ip пользователя
 	router.Use(middleware.RealIP)
 	// Логирует входящие запросы
-	router.Use(middleware.Logger)
+	router.Use(mwLogger.New(log))
 
 	// TODO: run server
 }
