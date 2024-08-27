@@ -8,6 +8,8 @@ import (
 	"url-shortener/internal/lib/logger/xslog"
 	"url-shortener/internal/storage/postgres"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 )
 
@@ -37,7 +39,15 @@ func main() {
 		os.Exit(1)
 	}
 	log.Info("Storage init success. Create table and index")
-	// TODO: init router: chi
+
+	router := chi.NewRouter()
+
+	// Добавляет request id к каждому запросу
+	router.Use(middleware.RequestID)
+	// Добавляет ip пользователя
+	router.Use(middleware.RealIP)
+	// Логирует входящие запросы
+	router.Use(middleware.Logger)
 
 	// TODO: run server
 }
