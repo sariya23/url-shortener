@@ -58,10 +58,11 @@ func (s *Storage) SaveURL(ctx context.Context, urlToSave string, alias string) (
 	query := "insert into url(url, alias) values ($1, $2) returning url_id"
 	err := s.connection.QueryRow(ctx, query, urlToSave, alias).Scan(&insertedId)
 
+	if ok := errors.As(err, &pgErr); ok && pgErr.Code == pgerrcode.UniqueViolation {
+		return -1, fmt.Errorf("%s: %w", operationPlace, storage.ErrURLExists)
+	}
+
 	if err != nil {
-		if ok := errors.As(err, &pgErr); ok && pgErr.Code == pgerrcode.UniqueViolation {
-			return -1, fmt.Errorf("%s: %w", operationPlace, storage.ErrURLExists)
-		}
 		return -1, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
@@ -73,13 +74,14 @@ func (s *Storage) GetURLByAlias(ctx context.Context, alias string) (string, erro
 	var urlByAlias string
 
 	query := `select url from url where alias=$1`
-	row, err := s.connection.Query(ctx, query, alias)
+	err := s.connection.QueryRow(ctx, query, alias).Scan(&urlByAlias)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", storage.ErrURLNotFound
+	}
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", operationPlace, err)
 	}
-	defer row.Close()
-	row.Next()
-	row.Scan(&urlByAlias)
 
 	return urlByAlias, nil
 }
