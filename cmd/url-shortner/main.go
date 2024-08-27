@@ -6,6 +6,7 @@ import (
 	"os"
 	"url-shortener/internal/config"
 	mwLogger "url-shortener/internal/http-server/middleware/logger"
+	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/xslog"
 	"url-shortener/internal/storage/postgres"
 
@@ -49,7 +50,11 @@ func main() {
 	router.Use(middleware.RealIP)
 	// Логирует входящие запросы
 	router.Use(mwLogger.New(log))
-
+	// При панике, чтобы не падало все приложение из-за одного запроса
+	router.Use(middleware.Recoverer)
+	// Фишка chi. Позволяет писать такие роуты: /articles/{id} и потом
+	// получать этот id в хендлере
+	router.Use(middleware.URLFormat)
 	// TODO: run server
 }
 
@@ -59,10 +64,22 @@ func setUpLogger(env string) *slog.Logger {
 
 	switch env {
 	case envLocal:
-		logger = slog.New(slog.NewTextHandler(os.Stdout, handlerOptions))
+		logger = setupPrettySlog()
 	case envDev:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, handlerOptions))
 	}
 
 	return logger
+}
+
+func setupPrettySlog() *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(os.Stdout)
+
+	return slog.New(handler)
 }
