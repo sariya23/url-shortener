@@ -11,6 +11,7 @@ import (
 	"testing"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/handlers/url/save/mocks"
+	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/logger/handlers/slogpretty/slogdiscard"
 
 	"github.com/stretchr/testify/mock"
@@ -43,12 +44,12 @@ func TestSaveHandler(t *testing.T) {
 			caseName:    "empty url",
 			urlToSave:   "",
 			aliasForURL: "empty url",
-			responseErr: "field URL is required",
+			responseErr: fmt.Sprintf("%s %s", response.ErrMSgMissingRequiredField, "URL"),
 		},
 		{
 			caseName:    "SaveURL error",
 			urlToSave:   "http://qwe.ru",
-			responseErr: "failed to add url",
+			responseErr: save.ErrMsgFailedAddUrl,
 			mockErr:     errors.New("unexpected error"),
 		},
 	}

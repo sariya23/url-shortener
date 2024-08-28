@@ -15,6 +15,10 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+const (
+	ErrMsgFailedAddUrl = "failed add url"
+)
+
 type Request struct {
 	URL   string `json:"url" validate:"required,url"`
 	Alias string `json:"alias,omitempty"`
@@ -69,8 +73,8 @@ func New(ctx context.Context, log *slog.Logger, urlSaver URLSaver) http.HandlerF
 		}
 
 		if err != nil {
-			log.Error("failed to add url", xslog.Err(err))
-			render.JSON(w, r, response.Error("failed to add url"))
+			log.Error(ErrMsgFailedAddUrl, xslog.Err(err))
+			render.JSON(w, r, response.Error(ErrMsgFailedAddUrl))
 			return
 		}
 
