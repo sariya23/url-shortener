@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"url-shortener/internal/config"
+	"url-shortener/internal/http-server/handlers/url/save"
 	mwLogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/handlers/slogpretty"
 	"url-shortener/internal/lib/logger/xslog"
@@ -55,7 +57,24 @@ func main() {
 	// Фишка chi. Позволяет писать такие роуты: /articles/{id} и потом
 	// получать этот id в хендлере
 	router.Use(middleware.URLFormat)
-	// TODO: run server
+
+	router.Post("/url", save.New(ctx, log, storage))
+
+	log.Info("starting server", "address", config.Address)
+	server := &http.Server{
+		Addr:         config.Address,
+		Handler:      router,
+		ReadTimeout:  config.HTTPServer.Timeout,
+		WriteTimeout: config.HTTPServer.Timeout,
+		IdleTimeout:  config.HTTPServer.IddleTimeout,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
+		log.Error("failed to start server", xslog.Err(err))
+	}
+
+	log.Error("server stopped")
+
 }
 
 func setUpLogger(env string) *slog.Logger {

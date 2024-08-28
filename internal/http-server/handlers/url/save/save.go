@@ -38,7 +38,6 @@ func New(ctx context.Context, log *slog.Logger, urlSaver URLSaver) http.HandlerF
 		)
 
 		var request Request
-
 		err := render.DecodeJSON(r.Body, &request)
 		if err != nil {
 			log.Error("failed to decode request body", xslog.Err(err))
