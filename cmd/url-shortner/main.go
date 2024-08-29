@@ -60,9 +60,15 @@ func main() {
 	// получать этот id в хендлере
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", save.New(ctx, log, storage))
 	router.Get("/{alias}", redirect.New(ctx, log, storage))
-	router.Delete("/{alias}", delete.New(ctx, log, storage))
+
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			config.HTTPServer.UserName: config.HTTPServer.Password,
+		}))
+		router.Post("/", save.New(ctx, log, storage))
+		router.Delete("/{alias}", delete.New(ctx, log, storage))
+	})
 
 	log.Info("starting server", "address", config.Address)
 	server := &http.Server{
