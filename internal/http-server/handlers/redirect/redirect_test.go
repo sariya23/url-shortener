@@ -54,7 +54,7 @@ func TestRedirectSuccess(t *testing.T) {
 	}
 }
 
-func TestRedirectFromAlias(t *testing.T) {
+func TestRedirectNegative(t *testing.T) {
 	cases := []testData{
 		{
 			caseName:  "No url on alias",
