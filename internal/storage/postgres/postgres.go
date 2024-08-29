@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"url-shortener/internal/storage"
 
 	"github.com/jackc/pgerrcode"
@@ -88,17 +87,17 @@ func (s *Storage) GetURLByAlias(ctx context.Context, alias string) (string, erro
 	return urlByAlias, nil
 }
 
-func (s *Storage) DeleteURLByAlias(ctx context.Context, alias string) (string, error) {
+func (s *Storage) DeleteURLByAlias(ctx context.Context, alias string) (int, error) {
 	const operationPlace = "storage.postgres.GetURLByAlias"
 
-	query := `delete from url where alias=$1`
-	t, err := s.connection.Exec(ctx, query, alias)
+	var deletedRows int
+
+	query := `delete from url where alias=$1 returning url_id`
+	err := s.connection.QueryRow(ctx, query, alias).Scan(&deletedRows)
 
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", operationPlace, err)
+		return -1, fmt.Errorf("%s: %w", operationPlace, err)
 	}
-
-	deletedRows := string(strings.Split(t.String(), " ")[1])
 
 	return deletedRows, nil
 }
