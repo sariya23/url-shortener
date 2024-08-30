@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 	"url-shortener/internal/http-server/handlers/url/save"
+	"url-shortener/internal/lib/api"
 	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/random"
 	"url-shortener/internal/storage/postgres"
@@ -156,4 +157,30 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 		ContainsKey("error").
 		ContainsValue("alias already exists")
 
+}
+
+func TestRedirectSuccess(t *testing.T) {
+	ctx := context.Background()
+	err := godotenv.Load("../config/.env")
+	require.NoError(t, err)
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	require.NoError(t, err)
+	defer cancel(*storage)
+
+	URL := "https://google.com"
+	alias := "google"
+
+	_, err = storage.SaveURL(ctx, URL, alias)
+	require.NoError(t, err)
+	defer func() {
+		_, err := storage.DeleteURLByAlias(ctx, alias)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	u := url.URL{Scheme: "http", Host: host, Path: alias}
+	redirectTo, err := api.GetRedirect(u.String())
+	require.NoError(t, err)
+	require.Equal(t, URL, redirectTo)
 }
