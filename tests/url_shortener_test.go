@@ -159,6 +159,9 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 
 }
 
+// TestRedirectSuccess проверяет, что
+// происходит переадресация по URL, которому
+// соответсвует алиас.
 func TestRedirectSuccess(t *testing.T) {
 	ctx := context.Background()
 	err := godotenv.Load("../config/.env")
