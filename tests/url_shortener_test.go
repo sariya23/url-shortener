@@ -9,6 +9,7 @@ import (
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/random"
+	"url-shortener/internal/storage/postgres"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/gavv/httpexpect/v2"
@@ -122,15 +123,17 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	err := godotenv.Load("../config/.env")
 	require.NoError(t, err)
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
+	defer cancel(*storage)
 	alias := "abobaTEST"
-	_, err = conn.Exec(ctx, "insert into url(url, alias) values ($1, $2)", "http://urlfortestABOBA.io", alias)
+	_, err = storage.SaveURL(ctx, "http://qwe.ru", alias)
 	require.NoError(t, err)
 	defer func() {
-		_, err := conn.Exec(ctx, "delete from url where alias=$1", alias)
+		_, err := storage.DeleteURLByAlias(ctx, alias)
 		if err != nil {
 			panic(err)
+
 		}
 	}()
 
