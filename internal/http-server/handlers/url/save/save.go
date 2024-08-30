@@ -66,9 +66,9 @@ func New(ctx context.Context, log *slog.Logger, urlSaver URLSaver) http.HandlerF
 
 		id, err := urlSaver.SaveURL(ctx, request.URL, alias)
 
-		if errors.Is(err, storage.ErrURLExists) {
-			log.Info("url already exists", "url", request.URL)
-			render.JSON(w, r, response.Error("url already exists"))
+		if errors.Is(err, storage.ErrAliasExists) {
+			log.Info("alias already exists", "alias", request.Alias)
+			render.JSON(w, r, response.Error("alias already exists"))
 			return
 		}
 

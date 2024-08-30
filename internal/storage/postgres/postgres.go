@@ -60,7 +60,7 @@ func (s *Storage) SaveURL(ctx context.Context, urlToSave string, alias string) (
 	err := s.connection.QueryRow(ctx, query, urlToSave, alias).Scan(&insertedId)
 
 	if ok := errors.As(err, &pgErr); ok && pgErr.Code == pgerrcode.UniqueViolation {
-		return -1, fmt.Errorf("%s: %w", operationPlace, storage.ErrURLExists)
+		return -1, fmt.Errorf("%s: %w", operationPlace, storage.ErrAliasExists)
 	}
 
 	if err != nil {

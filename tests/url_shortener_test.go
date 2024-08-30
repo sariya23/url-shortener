@@ -43,12 +43,12 @@ func TestSaveURLSuccess(t *testing.T) {
 	require.NoError(t, err)
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
-	defer t.Cleanup(func() {
-		_, err := conn.Exec(ctx, "delete from url where alias=$1", req.Alias)
+	defer func() {
+		_, err := conn.Exec(ctx, "delete from url where url=$1", req.URL)
 		if err != nil {
 			panic(err)
 		}
-	})
+	}()
 	require.NoError(t, err)
 	var urlId int
 	_ = conn.QueryRow(ctx, "select url_id from url where alias=$1", req.Alias).Scan(&urlId)
@@ -75,12 +75,12 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 	require.NoError(t, err)
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
-	defer t.Cleanup(func() {
+	defer func() {
 		_, err := conn.Exec(ctx, "delete from url where url=$1", req.URL)
 		if err != nil {
 			panic(err)
 		}
-	})
+	}()
 	require.NoError(t, err)
 }
 
@@ -115,4 +115,36 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 		Object().
 		ContainsKey("error").
 		ContainsValue("field is not a valid URL. Field: URL")
+}
+
+// TestCannotSaveTwoEqaulURLs
+func TestCannotSaveTwoEqaulAliases(t *testing.T) {
+	err := godotenv.Load("../config/.env")
+	require.NoError(t, err)
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+	require.NoError(t, err)
+	alias := "abobaTEST"
+	_, err = conn.Exec(ctx, "insert into url(url, alias) values ($1, $2)", "http://urlfortestABOBA.io", alias)
+	require.NoError(t, err)
+	defer func() {
+		_, err := conn.Exec(ctx, "delete from url where alias=$1", alias)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	u := url.URL{Scheme: "http", Host: host}
+	e := httpexpect.Default(t, u.String())
+	req := save.Request{
+		URL:   "http://urlfortestABOBA.io",
+		Alias: alias,
+	}
+	e.POST("/url").WithJSON(req).WithBasicAuth("localuser", "password").
+		Expect().
+		JSON().
+		Object().
+		ContainsKey("error").
+		ContainsValue("alias already exists")
+
 }
