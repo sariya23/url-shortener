@@ -11,6 +11,7 @@ import (
 	"url-shortener/internal/lib/api"
 	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/random"
+	errStorage "url-shortener/internal/storage"
 	"url-shortener/internal/storage/postgres"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -198,4 +199,33 @@ func TestCannotRedirectUndefinedAlias(t *testing.T) {
 	res, err := api.SendGet(u.String())
 	require.NoError(t, err)
 	assert.Equal(t, res.Error, redirect.ErrMsgRedirectNoAlias)
+}
+
+// TestDeleteSuccess проверяет, что при отправке
+// запроса с алиасом, который есть в БД, произойдет удаление.
+func TestDeleteSuccess(t *testing.T) {
+	ctx := context.Background()
+	err := godotenv.Load("../config/.env")
+	require.NoError(t, err)
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	require.NoError(t, err)
+	defer cancel(*storage)
+
+	URL := "https://google.com"
+	alias := "TestDeleteSuccess"
+
+	_, err = storage.SaveURL(ctx, URL, alias)
+	require.NoError(t, err)
+
+	u := url.URL{Scheme: "http", Host: host, Path: "url"}
+	e := httpexpect.Default(t, u.String())
+	e.DELETE("/"+alias).WithBasicAuth("localuser", "password").
+		Expect().
+		JSON().
+		Object().
+		ContainsKey("status").ContainsValue("OK")
+
+	id, err := storage.GetURLByAlias(ctx, alias)
+	require.Error(t, err, errStorage.ErrURLNotFound)
+	require.Equal(t, id, "")
 }
