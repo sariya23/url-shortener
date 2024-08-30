@@ -28,6 +28,10 @@ const (
 // алиасе и при успешной аутентификация
 // вернет статус 200 и сохранится в БД.
 func TestSaveURLSuccess(t *testing.T) {
+	ctx := context.Background()
+	err := godotenv.Load("../config/.env")
+	require.NoError(t, err)
+
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
 	req := save.Request{
@@ -40,9 +44,6 @@ func TestSaveURLSuccess(t *testing.T) {
 		JSON().Object().
 		ContainsKey("alias").ContainsValue(req.Alias)
 
-	err := godotenv.Load("../config/.env")
-	require.NoError(t, err)
-	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	defer func() {
 		_, err := conn.Exec(ctx, "delete from url where url=$1", req.URL)
@@ -60,21 +61,14 @@ func TestSaveURLSuccess(t *testing.T) {
 // что если алиас не передан, то он генерируется автоматически
 // и URL сохраняется с ним.
 func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
-	u := url.URL{Scheme: "http", Host: host}
-	e := httpexpect.Default(t, u.String())
+	ctx := context.Background()
+	err := godotenv.Load("../config/.env")
+	require.NoError(t, err)
+
 	req := save.Request{
 		URL:   gofakeit.URL(),
 		Alias: "",
 	}
-	e.POST("/url").WithJSON(req).
-		WithBasicAuth("localuser", "password").
-		Expect().
-		JSON().
-		Object().
-		ContainsKey("status").ContainsValue(response.StatusOK)
-	err := godotenv.Load("../config/.env")
-	require.NoError(t, err)
-	ctx := context.Background()
 	defer func() {
 		storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 		require.NoError(t, err)
@@ -84,6 +78,14 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 			panic(err)
 		}
 	}()
+	u := url.URL{Scheme: "http", Host: host}
+	e := httpexpect.Default(t, u.String())
+	e.POST("/url").WithJSON(req).
+		WithBasicAuth("localuser", "password").
+		Expect().
+		JSON().
+		Object().
+		ContainsKey("status").ContainsValue(response.StatusOK)
 	require.NoError(t, err)
 }
 
@@ -124,9 +126,9 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 // попытке сохранения алиаса, который уже есть в БД
 // сервер вернет ошибку.
 func TestCannotSaveTwoEqaulAliases(t *testing.T) {
+	ctx := context.Background()
 	err := godotenv.Load("../config/.env")
 	require.NoError(t, err)
-	ctx := context.Background()
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
