@@ -75,9 +75,11 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 	err := godotenv.Load("../config/.env")
 	require.NoError(t, err)
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
 	defer func() {
-		_, err := conn.Exec(ctx, "delete from url where url=$1", req.URL)
+		storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+		require.NoError(t, err)
+		defer cancel(*storage)
+		_, err = storage.DeleteURLByURL(ctx, req.URL)
 		if err != nil {
 			panic(err)
 		}
