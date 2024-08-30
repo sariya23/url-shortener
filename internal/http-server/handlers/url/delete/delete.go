@@ -24,6 +24,10 @@ type Response struct {
 	DeletedId int
 }
 
+const (
+	ErrNothingToDelete = "nothing to delete"
+)
+
 func New(ctx context.Context, log *slog.Logger, urlDeleter URLDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const operationPlace = "handlers.url.delete.New"

@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 	"url-shortener/internal/http-server/handlers/redirect"
+	"url-shortener/internal/http-server/handlers/url/delete"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/lib/api"
 	"url-shortener/internal/lib/api/response"
@@ -228,4 +229,19 @@ func TestDeleteSuccess(t *testing.T) {
 	id, err := storage.GetURLByAlias(ctx, alias)
 	require.Error(t, err, errStorage.ErrURLNotFound)
 	require.Equal(t, id, "")
+}
+
+// TestCannotDeleteBecauseNoRow проверяет, что
+// сервер вернет ошибку, если в БД нет записи с этим
+// алиасом.
+func TestCannotDeleteBecauseNoRow(t *testing.T) {
+	alias := "TestCannotDeleteBecauseNoRow"
+
+	u := url.URL{Scheme: "http", Host: host, Path: "url"}
+	e := httpexpect.Default(t, u.String())
+	e.DELETE("/"+alias).WithBasicAuth("localuser", "password").
+		Expect().
+		JSON().
+		Object().
+		ContainsKey("error").ContainsValue(delete.ErrNothingToDelete)
 }
