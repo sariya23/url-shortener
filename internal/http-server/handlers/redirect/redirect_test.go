@@ -60,7 +60,7 @@ func TestRedirectNegative(t *testing.T) {
 			caseName:  "No url on alias",
 			alias:     "qwe",
 			url:       "http://qwe.ru",
-			respError: "no url on this alias (alias=qwe)",
+			respError: redirect.ErrMsgRedirectNoAlias,
 			mockError: storage.ErrURLNotFound,
 		},
 	}

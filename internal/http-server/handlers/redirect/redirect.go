@@ -3,7 +3,6 @@ package redirect
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"url-shortener/internal/lib/api/response"
@@ -20,7 +19,8 @@ type URLGetter interface {
 }
 
 const (
-	ErrMsgGetURL = "failed to get URL"
+	ErrMsgGetURL          = "failed to get URL"
+	ErrMsgRedirectNoAlias = "no url on this alias"
 )
 
 func New(ctx context.Context, log *slog.Logger, getURL URLGetter) http.HandlerFunc {
@@ -42,7 +42,7 @@ func New(ctx context.Context, log *slog.Logger, getURL URLGetter) http.HandlerFu
 
 		if errors.Is(err, storage.ErrURLNotFound) {
 			log.Info("no url on this alias", "alias", alias)
-			render.JSON(w, r, response.Error(fmt.Sprintf("no url on this alias (alias=%s)", alias)))
+			render.JSON(w, r, response.Error(ErrMsgRedirectNoAlias))
 			return
 		}
 

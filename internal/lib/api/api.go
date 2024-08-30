@@ -1,9 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"url-shortener/internal/lib/api/response"
 )
 
 var (
@@ -31,4 +34,20 @@ func GetRedirect(url string) (string, error) {
 	}
 
 	return resp.Header.Get("Location"), nil
+}
+
+func SendGet(url string) (*response.Response, error) {
+	client := http.Client{}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	data, _ := io.ReadAll(resp.Body)
+	var res response.Response
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }

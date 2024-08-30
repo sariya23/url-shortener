@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"testing"
+	"url-shortener/internal/http-server/handlers/redirect"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/lib/api"
 	"url-shortener/internal/lib/api/response"
@@ -186,4 +187,15 @@ func TestRedirectSuccess(t *testing.T) {
 	redirectTo, err := api.GetRedirect(u.String())
 	require.NoError(t, err)
 	require.Equal(t, URL, redirectTo)
+}
+
+// TestCannotRedirectBecauseAliasEmpty проверяет,
+// что при передаче несуществующзего алиаса в запросе, сервер
+// вернет ошибку.
+func TestCannotRedirectUndefinedAlias(t *testing.T) {
+	alias := "qwe"
+	u := url.URL{Scheme: "http", Host: host, Path: alias}
+	res, err := api.SendGet(u.String())
+	require.NoError(t, err)
+	assert.Equal(t, res.Error, redirect.ErrMsgRedirectNoAlias)
 }
