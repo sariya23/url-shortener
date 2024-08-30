@@ -101,3 +101,18 @@ func (s *Storage) DeleteURLByAlias(ctx context.Context, alias string) (int, erro
 
 	return deletedRows, nil
 }
+
+func (s *Storage) DeleteURLByURL(ctx context.Context, url string) (int, error) {
+	const operationPlace = "storage.postgres.GetURLByAlias"
+
+	var deletedRows int
+
+	query := `delete from url where url=$1 returning url_id`
+	err := s.connection.QueryRow(ctx, query, url).Scan(&deletedRows)
+
+	if err != nil {
+		return -1, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
+	return deletedRows, nil
+}
