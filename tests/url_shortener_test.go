@@ -120,7 +120,9 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 		ContainsValue("field is not a valid URL. Field: URL")
 }
 
-// TestCannotSaveTwoEqaulURLs
+// TestCannotSaveTwoEqaulURLs проверяет, что при
+// попытке сохранения алиаса, который уже есть в БД
+// сервер вернет ошибку.
 func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	err := godotenv.Load("../config/.env")
 	require.NoError(t, err)
