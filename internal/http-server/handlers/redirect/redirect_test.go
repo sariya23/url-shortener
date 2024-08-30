@@ -2,16 +2,12 @@ package redirect_test
 
 import (
 	"context"
-	"encoding/json"
-	"io"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"url-shortener/internal/http-server/handlers/redirect"
 	"url-shortener/internal/http-server/handlers/redirect/mocks"
 	"url-shortener/internal/lib/api"
-	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/logger/handlers/slogpretty/slogdiscard"
 	"url-shortener/internal/storage"
 
@@ -74,16 +70,10 @@ func TestRedirectNegative(t *testing.T) {
 			r.Get("/{alias}", redirect.New(ctx, slogdiscard.NewDiscardLogger(), urlGetterMock))
 			server := httptest.NewServer(r)
 			defer server.Close()
-			client := http.Client{}
 
-			resp, err := client.Get(server.URL + "/" + testCase.alias)
+			resp, err := api.SendGet(server.URL + "/" + testCase.alias)
 			require.NoError(t, err)
-			data, _ := io.ReadAll(resp.Body)
-			var res response.Response
-			err = json.Unmarshal(data, &res)
-			require.NoError(t, err)
-
-			assert.Equal(t, res.Error, testCase.respError)
+			assert.Equal(t, resp.Error, testCase.respError)
 
 		})
 	}
