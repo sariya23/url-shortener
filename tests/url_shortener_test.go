@@ -245,3 +245,12 @@ func TestCannotDeleteBecauseNoRow(t *testing.T) {
 		Object().
 		ContainsKey("error").ContainsValue(delete.ErrNothingToDelete)
 }
+
+// TestCannotDeleteRowWithOutAuth проверяет,
+// что удаление невозможно без авторизации.
+func TestCannotDeleteRowWithOutAuth(t *testing.T) {
+	u := url.URL{Scheme: "http", Host: host, Path: "url"}
+	e := httpexpect.Default(t, u.String())
+	alias := "TestCannotDeleteRowWithOutAuth"
+	e.DELETE("/" + alias).Expect().Status(http.StatusUnauthorized)
+}
