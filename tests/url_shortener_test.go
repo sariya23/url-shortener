@@ -1,14 +1,20 @@
 package tests
 
 import (
+	"context"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/lib/random"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/gavv/httpexpect/v2"
+	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -32,10 +38,18 @@ func TestSaveURLSuccess(t *testing.T) {
 		JSON().Object().
 		ContainsKey("alias").ContainsValue(req.Alias)
 
-	// ctx := context.Background()
-	// conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
-	// require.NoError(t, err)
-	// var urlId int
-	// _ = conn.QueryRow(ctx, "select url_id from url where alias=$1", req.Alias).Scan(&urlId)
-	// assert.Greater(t, urlId, -1)
+	err := godotenv.Load("../config/.env")
+	require.NoError(t, err)
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+	defer t.Cleanup(func() {
+		_, err := conn.Exec(ctx, "delete from url where alias=$1", req.Alias)
+		if err != nil {
+			panic(err)
+		}
+	})
+	require.NoError(t, err)
+	var urlId int
+	_ = conn.QueryRow(ctx, "select url_id from url where alias=$1", req.Alias).Scan(&urlId)
+	assert.Greater(t, urlId, -1)
 }
