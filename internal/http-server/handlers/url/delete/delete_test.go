@@ -13,20 +13,33 @@ import (
 	"url-shortener/internal/lib/logger/handlers/slogpretty/slogdiscard"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeleteQuerySuccess(t *testing.T) {
 	cases := []struct {
-		caseName  string
-		alias     string
-		respError string
-		mockError error
+		caseName   string
+		alias      string
+		deletedId  int
+		respStatus string
+		respError  string
+		mockError  error
 	}{
 		{
-			caseName: "Success delete row",
-			alias:    "qwe",
+			caseName:   "Success delete row",
+			alias:      "qwe",
+			deletedId:  1,
+			respStatus: response.StatusOK,
+		},
+		{
+			caseName:   "No row with this alias",
+			alias:      "qwe",
+			deletedId:  0,
+			respStatus: response.StatusError,
+			respError:  "nothing to delete",
+			mockError:  pgx.ErrNoRows,
 		},
 	}
 
@@ -34,7 +47,7 @@ func TestDeleteQuerySuccess(t *testing.T) {
 		t.Run(tc.caseName, func(t *testing.T) {
 			ctx := context.Background()
 			urlDeleterMock := mocks.NewURLDeleter(t)
-			urlDeleterMock.On("DeleteURLByAlias", ctx, tc.alias).Return(1, tc.mockError)
+			urlDeleterMock.On("DeleteURLByAlias", ctx, tc.alias).Return(tc.deletedId, tc.mockError)
 			handler := delete.New(ctx, slogdiscard.NewDiscardLogger(), urlDeleterMock)
 			r := chi.NewRouter()
 			r.Delete("/{alias}", handler)
@@ -56,10 +69,9 @@ func TestDeleteQuerySuccess(t *testing.T) {
 			err = json.Unmarshal(body, &respBody)
 			require.NoError(t, err)
 
-			assert.Equal(t, response.StatusOK, respBody.Status)
-			assert.Equal(t, 1, respBody.DeletedId)
-			assert.Equal(t, tc.alias, respBody.Alias)
-			assert.Equal(t, "", respBody.Error)
+			assert.Equal(t, tc.respStatus, respBody.Status)
+			assert.Equal(t, tc.deletedId, respBody.DeletedId)
+			assert.Equal(t, tc.respError, respBody.Error)
 		})
 	}
 }
