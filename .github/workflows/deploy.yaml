@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: debian-latest
+    runs-on: ubuntu-latest
     env:
       HOST: root@87.228.17.125
       DEPLOY_DIRECTORY: /root/apps/url-shortener
