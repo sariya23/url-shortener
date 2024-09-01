@@ -33,7 +33,7 @@ const (
 // вернет статус 200 и сохранится в БД.
 func TestSaveURLSuccess(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../config/.env")
+	err := godotenv.Load("../.env")
 	require.NoError(t, err)
 
 	u := url.URL{Scheme: "http", Host: host}
@@ -66,7 +66,7 @@ func TestSaveURLSuccess(t *testing.T) {
 // и URL сохраняется с ним.
 func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../config/.env")
+	err := godotenv.Load("../.env")
 	require.NoError(t, err)
 
 	req := save.Request{
@@ -131,7 +131,7 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 // сервер вернет ошибку.
 func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../config/.env")
+	err := godotenv.Load("../.env")
 	require.NoError(t, err)
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
@@ -167,7 +167,7 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 // соответсвует алиас.
 func TestRedirectSuccess(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../config/.env")
+	err := godotenv.Load("../.env")
 	require.NoError(t, err)
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
@@ -206,7 +206,7 @@ func TestCannotRedirectUndefinedAlias(t *testing.T) {
 // запроса с алиасом, который есть в БД, произойдет удаление.
 func TestDeleteSuccess(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../config/.env")
+	err := godotenv.Load("../.env")
 	require.NoError(t, err)
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)

@@ -21,12 +21,12 @@ import (
 
 const (
 	envLocal = "local"
-	envDev   = "dev"
+	endProd  = "prod"
 )
 
 func main() {
 	ctx := context.Background()
-	err := godotenv.Load("config/.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +94,7 @@ func setUpLogger(env string) *slog.Logger {
 	switch env {
 	case envLocal:
 		logger = setupPrettySlog()
-	case envDev:
+	case endProd:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, handlerOptions))
 	}
 
