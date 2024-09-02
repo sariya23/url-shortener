@@ -126,3 +126,20 @@ func (s *Storage) Truncate(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (s *Storage) GetURLIdByURL(ctx context.Context, URL string) (int, error) {
+	const operationPlace = "storage.postgres.GetURLIdByURL"
+	var urlId int
+
+	query := `select url_id from url where url=$1`
+	err := s.connection.QueryRow(ctx, query, URL).Scan(&urlId)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return -1, storage.ErrURLNotFound
+	}
+	if err != nil {
+		return -1, fmt.Errorf("%s: %w", operationPlace, err)
+	}
+
+	return urlId, nil
+}

@@ -17,7 +17,6 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/gavv/httpexpect/v2"
-	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,17 +84,12 @@ func TestSaveURLSuccess(t *testing.T) {
 		JSON().Object().
 		ContainsKey("alias").ContainsValue(req.Alias)
 
-	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
-	defer func() {
-		_, err := conn.Exec(ctx, "delete from url where url=$1", req.URL)
-		if err != nil {
-			panic(err)
-		}
-	}()
+	conn, cancel, err := postgres.New(ctx, os.Getenv("TEST_DATABASE_URL"))
 	require.NoError(t, err)
-	var urlId int
-	_ = conn.QueryRow(ctx, "select url_id from url where alias=$1", req.Alias).Scan(&urlId)
-	assert.Greater(t, urlId, -1)
+	defer cancel(*conn)
+	URL, err := conn.GetURLByAlias(ctx, req.Alias)
+	require.NoError(t, err)
+	assert.Equal(t, req.URL, URL)
 }
 
 // TestSaveURLWithAliasByAutoGenerate проверяет,
@@ -110,15 +104,6 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 		URL:   gofakeit.URL(),
 		Alias: "",
 	}
-	defer func() {
-		storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
-		require.NoError(t, err)
-		defer cancel(*storage)
-		_, err = storage.DeleteURLByURL(ctx, req.URL)
-		if err != nil {
-			panic(err)
-		}
-	}()
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
 	e.POST("/url").WithJSON(req).
@@ -128,6 +113,12 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 		Object().
 		ContainsKey("status").ContainsValue(response.StatusOK)
 	require.NoError(t, err)
+	conn, cancel, err := postgres.New(ctx, os.Getenv("TEST_DATABASE_URL"))
+	require.NoError(t, err)
+	defer cancel(*conn)
+	urlId, err := conn.GetURLIdByURL(ctx, req.URL)
+	require.NoError(t, err)
+	assert.NotEqual(t, urlId, -1)
 }
 
 // TestCannotSaveURLWithoutAuth проверяет, что
@@ -170,19 +161,12 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	ctx := context.Background()
 	err := godotenv.Load("../.env")
 	require.NoError(t, err)
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.New(ctx, os.Getenv("TEST_DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 	alias := "abobaTEST"
 	_, err = storage.SaveURL(ctx, "http://qwe.ru", alias)
 	require.NoError(t, err)
-	defer func() {
-		_, err := storage.DeleteURLByAlias(ctx, alias)
-		if err != nil {
-			panic(err)
-
-		}
-	}()
 
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
@@ -206,7 +190,7 @@ func TestRedirectSuccess(t *testing.T) {
 	ctx := context.Background()
 	err := godotenv.Load("../.env")
 	require.NoError(t, err)
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.New(ctx, os.Getenv("TEST_DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 
@@ -215,12 +199,6 @@ func TestRedirectSuccess(t *testing.T) {
 
 	_, err = storage.SaveURL(ctx, URL, alias)
 	require.NoError(t, err)
-	defer func() {
-		_, err := storage.DeleteURLByAlias(ctx, alias)
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 	u := url.URL{Scheme: "http", Host: host, Path: alias}
 	redirectTo, err := api.GetRedirect(u.String())
@@ -245,7 +223,7 @@ func TestDeleteSuccess(t *testing.T) {
 	ctx := context.Background()
 	err := godotenv.Load("../.env")
 	require.NoError(t, err)
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.New(ctx, os.Getenv("TEST_DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 
