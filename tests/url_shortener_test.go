@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,39 +28,26 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	logger := log.New(os.Stdout, "", log.LstdFlags)
 	ctx := context.Background()
 	err := godotenv.Load("../.env")
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 	dbPath := os.Getenv("TEST_DATABASE_URL")
 	storage, cancel, err := postgres.New(ctx, dbPath)
 	defer cancel(*storage)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
-
-	data := []struct {
-		url   string
-		alias string
-	}{
-		{"https://google.com", "alias"},
-	}
-
-	for _, v := range data {
-		_, err := storage.SaveURL(ctx, v.url, v.alias)
-		if err != nil {
-			panic(err)
-		}
-	}
-
+	logger.Println("TEST DATABASE CREATED SUCCESS")
 	exitVal := m.Run()
-
+	logger.Println("TESTS COMPLETED")
 	err = storage.Truncate(ctx)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
-
+	logger.Println("TEST DATABASE TRUNCATE")
 	os.Exit(exitVal)
 }
 
@@ -142,7 +130,7 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
 	req := save.Request{
-		URL:   "aboba",
+		URL:   "URL_TestCannotSaveInvalidURL",
 		Alias: random.NewRandomString(10),
 	}
 	e.POST("/url").WithJSON(req).
@@ -164,14 +152,14 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	storage, cancel, err := postgres.New(ctx, os.Getenv("TEST_DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
-	alias := "abobaTEST"
+	alias := "ALIAS_TestCannotSaveTwoEqaulAliases"
 	_, err = storage.SaveURL(ctx, "http://qwe.ru", alias)
 	require.NoError(t, err)
 
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
 	req := save.Request{
-		URL:   "http://urlfortestABOBA.io",
+		URL:   "http://TestCannotSaveTwoEqaulAliases.io",
 		Alias: alias,
 	}
 	e.POST("/url").WithJSON(req).WithBasicAuth("localuser", "password").
@@ -195,7 +183,7 @@ func TestRedirectSuccess(t *testing.T) {
 	defer cancel(*storage)
 
 	URL := "https://google.com"
-	alias := "google"
+	alias := "ALIAS_TestRedirectSuccess"
 
 	_, err = storage.SaveURL(ctx, URL, alias)
 	require.NoError(t, err)
@@ -210,7 +198,7 @@ func TestRedirectSuccess(t *testing.T) {
 // что при передаче несуществующзего алиаса в запросе, сервер
 // вернет ошибку.
 func TestCannotRedirectUndefinedAlias(t *testing.T) {
-	alias := "qwe"
+	alias := "ALIAS_TestCannotRedirectUndefinedAlias"
 	u := url.URL{Scheme: "http", Host: host, Path: alias}
 	res, err := api.SendGet(u.String())
 	require.NoError(t, err)
@@ -228,7 +216,7 @@ func TestDeleteSuccess(t *testing.T) {
 	defer cancel(*storage)
 
 	URL := "https://google.com"
-	alias := "TestDeleteSuccess"
+	alias := "ALIAS_TestDeleteSuccess"
 
 	_, err = storage.SaveURL(ctx, URL, alias)
 	require.NoError(t, err)
