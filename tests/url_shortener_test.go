@@ -27,6 +27,43 @@ const (
 	host = "localhost:8082"
 )
 
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+	err := godotenv.Load("../.env")
+	if err != nil {
+		panic(err)
+	}
+	dbPath := os.Getenv("TEST_DATABASE_URL")
+	storage, cancel, err := postgres.New(ctx, dbPath)
+	defer cancel(*storage)
+	if err != nil {
+		panic(err)
+	}
+
+	data := []struct {
+		url   string
+		alias string
+	}{
+		{"https://google.com", "alias"},
+	}
+
+	for _, v := range data {
+		_, err := storage.SaveURL(ctx, v.url, v.alias)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	exitVal := m.Run()
+
+	err = storage.Truncate(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	os.Exit(exitVal)
+}
+
 // TestSaveURLSuccess проверяет, что
 // запрос на сохранение URL при переданном
 // алиасе и при успешной аутентификация

@@ -88,7 +88,7 @@ func (s *Storage) GetURLByAlias(ctx context.Context, alias string) (string, erro
 }
 
 func (s *Storage) DeleteURLByAlias(ctx context.Context, alias string) (int, error) {
-	const operationPlace = "storage.postgres.GetURLByAlias"
+	const operationPlace = "storage.postgres.DeleteURLByAlias"
 
 	var deletedRows int
 
@@ -103,7 +103,7 @@ func (s *Storage) DeleteURLByAlias(ctx context.Context, alias string) (int, erro
 }
 
 func (s *Storage) DeleteURLByURL(ctx context.Context, url string) (int, error) {
-	const operationPlace = "storage.postgres.GetURLByAlias"
+	const operationPlace = "storage.postgres.DeleteURLByURL"
 
 	var deletedRows int
 
@@ -115,4 +115,14 @@ func (s *Storage) DeleteURLByURL(ctx context.Context, url string) (int, error) {
 	}
 
 	return deletedRows, nil
+}
+
+func (s *Storage) Truncate(ctx context.Context) error {
+	const operationPlace = "storage.postgres.Truncate"
+	query := `truncate url`
+	_, err := s.connection.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("%s: %w", operationPlace, err)
+	}
+	return nil
 }
