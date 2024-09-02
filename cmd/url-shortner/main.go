@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log/slog"
 	"net/http"
 	"os"
@@ -26,7 +27,13 @@ const (
 
 func main() {
 	ctx := context.Background()
-	err := godotenv.Load(".env")
+	env := flag.String("env", "local", "Set the environment. Tests available only in local env")
+	var err error
+	if *env == "local" {
+		err = godotenv.Load(".env.local")
+	} else if *env == "prod" {
+		err = godotenv.Load(".env.prod")
+	}
 	if err != nil {
 		panic(err)
 	}
