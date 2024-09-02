@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -33,6 +34,8 @@ func main() {
 		err = godotenv.Load(".env.local")
 	} else if *env == "prod" {
 		err = godotenv.Load(".env.prod")
+	} else {
+		err = fmt.Errorf("undefined env %s", *env)
 	}
 	if err != nil {
 		panic(err)
