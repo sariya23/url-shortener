@@ -52,3 +52,6 @@ REST API для сокращение ссылок, написанное на Go 
         "error":{errorMessage},
     }
     ```
+
+## Локальный запуск
+Coming soon
