@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -28,17 +29,20 @@ const (
 
 func main() {
 	ctx := context.Background()
-	env := flag.String("env", "local", "Set the environment. Tests available only in local env")
+	var env string
+	flag.StringVar(&env, "env", "required flag", "Set the env. If local - can start tests")
+	flag.Parse()
+
 	var err error
-	if *env == "local" {
+	if env == "local" {
 		err = godotenv.Load(".env.local")
-	} else if *env == "prod" {
+	} else if env == "prod" {
 		err = godotenv.Load(".env.prod")
 	} else {
-		err = fmt.Errorf("undefined env %s", *env)
+		err = fmt.Errorf("undefined env %s", env)
 	}
 	if err != nil {
-		panic(err)
+		log.Fatalf("Undefiend env value: %s (%v)", env, err)
 	}
 	config := config.MustLoad()
 
