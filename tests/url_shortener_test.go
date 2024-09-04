@@ -23,17 +23,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	cfg = map[string]string{
+		"username": "localuser",
+		"password": "password",
+	}
+)
+
 const (
 	host = "localhost:8082"
 )
 
 func TestMain(m *testing.M) {
 	logger := log.New(os.Stdout, "", log.LstdFlags)
-	ctx := context.Background()
 	err := godotenv.Load("../.env.local")
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("cannot load env: %v", err)
 	}
+	ctx := context.Background()
 	dbPath := os.Getenv("DATABASE_URL")
 	storage, cancel, err := postgres.New(ctx, dbPath)
 	defer cancel(*storage)
@@ -57,8 +64,6 @@ func TestMain(m *testing.M) {
 // вернет статус 200 и сохранится в БД.
 func TestSaveURLSuccess(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../.env.local")
-	require.NoError(t, err)
 
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
@@ -66,7 +71,7 @@ func TestSaveURLSuccess(t *testing.T) {
 		URL:   gofakeit.URL(),
 		Alias: random.NewRandomString(10),
 	}
-	e.POST("/url").WithJSON(req).WithBasicAuth("localuser", "password").
+	e.POST("/url").WithJSON(req).WithBasicAuth(cfg["username"], cfg["password"]).
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object().
@@ -85,8 +90,6 @@ func TestSaveURLSuccess(t *testing.T) {
 // и URL сохраняется с ним.
 func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../.env.local")
-	require.NoError(t, err)
 
 	req := save.Request{
 		URL:   gofakeit.URL(),
@@ -95,12 +98,11 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 	u := url.URL{Scheme: "http", Host: host}
 	e := httpexpect.Default(t, u.String())
 	e.POST("/url").WithJSON(req).
-		WithBasicAuth("localuser", "password").
+		WithBasicAuth(cfg["username"], cfg["password"]).
 		Expect().
 		JSON().
 		Object().
 		ContainsKey("status").ContainsValue(response.StatusOK)
-	require.NoError(t, err)
 	conn, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*conn)
@@ -134,7 +136,7 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 		Alias: random.NewRandomString(10),
 	}
 	e.POST("/url").WithJSON(req).
-		WithBasicAuth("localuser", "password").
+		WithBasicAuth(cfg["username"], cfg["password"]).
 		Expect().
 		JSON().
 		Object().
@@ -147,8 +149,6 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 // сервер вернет ошибку.
 func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../.env.local")
-	require.NoError(t, err)
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
@@ -162,7 +162,7 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 		URL:   "http://TestCannotSaveTwoEqaulAliases.io",
 		Alias: alias,
 	}
-	e.POST("/url").WithJSON(req).WithBasicAuth("localuser", "password").
+	e.POST("/url").WithJSON(req).WithBasicAuth(cfg["username"], cfg["password"]).
 		Expect().
 		JSON().
 		Object().
@@ -176,8 +176,6 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 // соответсвует алиас.
 func TestRedirectSuccess(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../.env.local")
-	require.NoError(t, err)
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
@@ -209,8 +207,6 @@ func TestCannotRedirectUndefinedAlias(t *testing.T) {
 // запроса с алиасом, который есть в БД, произойдет удаление.
 func TestDeleteSuccess(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../.env.local")
-	require.NoError(t, err)
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
@@ -223,7 +219,7 @@ func TestDeleteSuccess(t *testing.T) {
 
 	u := url.URL{Scheme: "http", Host: host, Path: "url"}
 	e := httpexpect.Default(t, u.String())
-	e.DELETE("/"+alias).WithBasicAuth("localuser", "password").
+	e.DELETE("/"+alias).WithBasicAuth(cfg["username"], cfg["password"]).
 		Expect().
 		JSON().
 		Object().
@@ -242,7 +238,7 @@ func TestCannotDeleteBecauseNoRow(t *testing.T) {
 
 	u := url.URL{Scheme: "http", Host: host, Path: "url"}
 	e := httpexpect.Default(t, u.String())
-	e.DELETE("/"+alias).WithBasicAuth("localuser", "password").
+	e.DELETE("/"+alias).WithBasicAuth(cfg["username"], cfg["password"]).
 		Expect().
 		JSON().
 		Object().
