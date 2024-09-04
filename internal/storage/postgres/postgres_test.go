@@ -22,6 +22,8 @@ func TestMain(m *testing.M) {
 	os.Exit(exitVal)
 }
 
+// TestCreateTable проверяет, что
+// создание таблицы проходит без ошибок.
 func TestCreateTable(t *testing.T) {
 	ctx := context.Background()
 	storge, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
@@ -31,7 +33,9 @@ func TestCreateTable(t *testing.T) {
 	}
 }
 
-func TestInsertURLinTable(t *testing.T) {
+// TestInsertURLInTable проверяет, что вставка
+// записи в таблицу происходит без ошибок.
+func TestInsertURLInTable(t *testing.T) {
 	ctx := context.Background()
 	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*storage)
@@ -45,6 +49,8 @@ func TestInsertURLinTable(t *testing.T) {
 	}
 }
 
+// TestCannotSaveURLBecauseAliasAlreadyInTable проверяет,
+// что попытка вставки такого же алиаса приведет к ошибке.
 func TestCannotSaveURLBecauseAliasAlreadyInTable(t *testing.T) {
 	ctx := context.Background()
 	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
@@ -64,6 +70,8 @@ func TestCannotSaveURLBecauseAliasAlreadyInTable(t *testing.T) {
 	}
 }
 
+// TestCanGetURLByAlias проверяет
+// получение соответсвующего URL по алиасу.
 func TestCanGetURLByAlias(t *testing.T) {
 	ctx := context.Background()
 	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
@@ -86,6 +94,8 @@ func TestCanGetURLByAlias(t *testing.T) {
 	}
 }
 
+// TestCannotGetURLBecauseItNotExists проверяет, что
+// попытка получить URL по несуществующему алиасу приведет к ошибке.
 func TestCannotGetURLBecauseItNotExists(t *testing.T) {
 	ctx := context.Background()
 	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
@@ -100,6 +110,9 @@ func TestCannotGetURLBecauseItNotExists(t *testing.T) {
 	}
 }
 
+// TestCanDeleteURLByAliasFromTable проверяет,
+// что удаление строки по алиасу проходит успешно
+// как при существующей записи, так и не существующего.
 func TestCanDeleteURLByAliasFromTable(t *testing.T) {
 	cases := []struct {
 		caseName    string
@@ -131,6 +144,9 @@ func TestCanDeleteURLByAliasFromTable(t *testing.T) {
 	}
 }
 
+// TestCanDeleteURLByAliasFromTable проверяет,
+// что удаление строки по URL проходит успешно
+// как при существующей записи, так и не существующего.
 func TestCanDeleteURLByURLFromTable(t *testing.T) {
 	cases := []struct {
 		caseName string
@@ -161,6 +177,8 @@ func TestCanDeleteURLByURLFromTable(t *testing.T) {
 	}
 }
 
+// TestCanTruncateTable проверяет,
+// что очистка таблицы происходит без ошибок.
 func TestCanTruncateTable(t *testing.T) {
 	ctx := context.Background()
 	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
@@ -175,6 +193,8 @@ func TestCanTruncateTable(t *testing.T) {
 	}
 }
 
+// TestCanGetURLIdByURL проверяет,
+// что получение url_id по URl происходит без ошибок.
 func TestCanGetURLIdByURL(t *testing.T) {
 	ctx := context.Background()
 	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
@@ -200,6 +220,9 @@ func TestCanGetURLIdByURL(t *testing.T) {
 	}
 }
 
+// TestCannotGetURLIdByURLBecauseItNotExists, что
+// при попытке получить запись по несуществующему URL проиходит
+// ошибка.
 func TestCannotGetURLIdByURLBecauseItNotExists(t *testing.T) {
 	ctx := context.Background()
 	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
