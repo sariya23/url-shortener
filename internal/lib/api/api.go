@@ -13,7 +13,7 @@ var (
 	ErrInvalidStatusCode = errors.New("invalid status code")
 )
 
-// GetRedirect returns the final URL after redirection.
+// GetRedirect возвращает последний редирект.
 func GetRedirect(url string) (string, error) {
 	const op = "api.GetRedirect"
 
