@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDeleteQuerySuccess(t *testing.T) {
+func TestDeleteQuery(t *testing.T) {
 	cases := []struct {
 		caseName   string
 		alias      string
