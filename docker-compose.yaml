@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: dev
+    env_file: ".env.local"
+    ports:
+    - "8082:8082"
+    links:
+    - db
+  db:
+    image: postgres:16
+    env_file: ".env.local"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+    - "5432:5432"
