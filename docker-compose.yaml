@@ -6,16 +6,18 @@ services:
       context: .
       target: dev
     env_file: ".env.local"
+    restart: "always"
     ports:
-    - "8082:8082"
-    links:
-    - db
+      - "8082:8082"
+    depends_on:
+      - db
   db:
     image: postgres:16
     env_file: ".env.local"
+    restart: "always"
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-    - "5432:5432"
+      - "5432:5432"
