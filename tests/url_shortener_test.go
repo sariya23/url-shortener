@@ -34,8 +34,6 @@ const (
 	host = "127.0.0.1:8082"
 )
 
-var dbPath = "postgres://test_user:1234@localhost:5433/test_db"
-
 func TestMain(m *testing.M) {
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	err := godotenv.Load("../.env.local")
@@ -43,6 +41,7 @@ func TestMain(m *testing.M) {
 		logger.Fatalf("cannot load env: %v", err)
 	}
 	ctx := context.Background()
+	dbPath := os.Getenv("DATABASE_URL")
 	storage, cancel, err := postgres.New(ctx, dbPath)
 	defer cancel(*storage)
 	if err != nil {
@@ -78,7 +77,7 @@ func TestSaveURLSuccess(t *testing.T) {
 		JSON().Object().
 		ContainsKey("alias").ContainsValue(req.Alias)
 
-	conn, cancel, err := postgres.New(ctx, dbPath)
+	conn, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*conn)
 	URL, err := conn.GetURLByAlias(ctx, req.Alias)
@@ -104,7 +103,7 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 		JSON().
 		Object().
 		ContainsKey("status").ContainsValue(response.StatusOK)
-	conn, cancel, err := postgres.New(ctx, dbPath)
+	conn, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*conn)
 	urlId, err := conn.GetURLIdByURL(ctx, req.URL)
@@ -150,7 +149,7 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 // сервер вернет ошибку.
 func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, dbPath)
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 	alias := "ALIAS_TestCannotSaveTwoEqaulAliases"
@@ -177,7 +176,7 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 // соответсвует алиас.
 func TestRedirectSuccess(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, dbPath)
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 
@@ -208,7 +207,7 @@ func TestCannotRedirectUndefinedAlias(t *testing.T) {
 // запроса с алиасом, который есть в БД, произойдет удаление.
 func TestDeleteSuccess(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, dbPath)
+	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 
