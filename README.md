@@ -78,3 +78,19 @@ docker-compose --env-file=.env.local build
 docker compose --env-file=.env.local up -d
 ```
 Это запустит сервер. Он будет доступен по адресу `http://localhost:8082` или `http://127.0.0.1:8082`
+
+## Локальный запуск тестов
+
+*!Приложение должно быть запущено!*
+
+Для локального запуска тестов нужно зайти внутрь контейнера приложения такой командой:
+
+```shell
+docker-compose exec app sh
+```
+
+Внутри перейти в папку, например, с интеграционным тестами и запустить их:
+```go
+/app # cd tests/
+/app/tests # go test url_shortener_test.go
+```
