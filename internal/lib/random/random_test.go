@@ -1,8 +1,10 @@
-package random
+package random_test
 
 import (
 	"regexp"
 	"testing"
+
+	r "url-shortener/internal/lib/random"
 )
 
 var testData = []struct {
@@ -17,8 +19,8 @@ var testData = []struct {
 func TestGeneratorReturnDifferentStrings(t *testing.T) {
 	for _, v := range testData {
 		t.Run(v.testCaseName, func(*testing.T) {
-			str1 := NewRandomString(v.stringLen)
-			str2 := NewRandomString(v.stringLen)
+			str1 := r.NewRandomString(v.stringLen)
+			str2 := r.NewRandomString(v.stringLen)
 
 			if str1 == str2 {
 				t.Errorf("got identic strings from 2 generate (%s, %s)", str1, str2)
@@ -30,7 +32,7 @@ func TestGeneratorReturnDifferentStrings(t *testing.T) {
 func TestStringWithOnlySmallLetters(t *testing.T) {
 	for _, v := range testData {
 		t.Run(v.testCaseName, func(*testing.T) {
-			s := NewRandomString(v.stringLen)
+			s := r.NewRandomString(v.stringLen)
 			matched, err := regexp.MatchString(`[a-z]+`, s)
 			if err != nil {
 				t.Errorf("something wrong (%v)", err)
