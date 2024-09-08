@@ -61,7 +61,7 @@ func main() {
 	log.Info("Storage init success. Create table and index")
 
 	router := chi.NewRouter()
-
+	fmt.Println(1 + 1)
 	// Добавляет request id к каждому запросу
 	router.Use(middleware.RequestID)
 	// Добавляет ip пользователя
