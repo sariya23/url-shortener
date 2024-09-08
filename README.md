@@ -94,3 +94,9 @@ docker-compose exec app sh
 /app # cd tests/
 /app/tests # go test url_shortener_test.go
 ```
+
+Чтобы запустить все тесты в проекте, в корне нужно выполнить:
+
+```go
+app # go test ./...
+```
