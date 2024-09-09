@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 	}
 	ctx := context.Background()
 	dbPath := os.Getenv("DATABASE_URL")
-	storage, cancel, err := postgres.New(ctx, dbPath)
+	storage, cancel, err := postgres.MustNewConnection(ctx, dbPath)
 	defer cancel(*storage)
 	if err != nil {
 		logger.Fatal(err)
@@ -77,7 +77,7 @@ func TestSaveURLSuccess(t *testing.T) {
 		JSON().Object().
 		ContainsKey("alias").ContainsValue(req.Alias)
 
-	conn, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	conn, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*conn)
 	URL, err := conn.GetURLByAlias(ctx, req.Alias)
@@ -103,7 +103,7 @@ func TestSaveURLWithAliasByAutoGenerate(t *testing.T) {
 		JSON().
 		Object().
 		ContainsKey("status").ContainsValue(response.StatusOK)
-	conn, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	conn, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*conn)
 	urlId, err := conn.GetURLIdByURL(ctx, req.URL)
@@ -149,7 +149,7 @@ func TestCannotSaveInvalidURL(t *testing.T) {
 // сервер вернет ошибку.
 func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 	alias := "ALIAS_TestCannotSaveTwoEqaulAliases"
@@ -176,7 +176,7 @@ func TestCannotSaveTwoEqaulAliases(t *testing.T) {
 // соответсвует алиас.
 func TestRedirectSuccess(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 
@@ -207,7 +207,7 @@ func TestCannotRedirectUndefinedAlias(t *testing.T) {
 // запроса с алиасом, который есть в БД, произойдет удаление.
 func TestDeleteSuccess(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	require.NoError(t, err)
 	defer cancel(*storage)
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"url-shortener/internal/storage"
 
 	"github.com/jackc/pgerrcode"
@@ -15,38 +16,22 @@ type Storage struct {
 	connection *pgx.Conn
 }
 
-func New(ctx context.Context, storagePath string) (*Storage, func(s Storage), error) {
-	const operationPlace = "storage.postgres.New"
+func MustNewConnection(ctx context.Context, storagePath string) (*Storage, func(s Storage), error) {
+	const operationPlace = "storage.storage.MustNewConnection"
 	cancel := func(s Storage) {
 		err := s.connection.Close(ctx)
 		if err != nil {
-			panic(err)
+			log.Fatalf("Cannot close connection: %v (%s)", err, operationPlace)
 		}
 	}
 	conn, err := pgx.Connect(ctx, storagePath)
-
 	if err != nil {
-		return &Storage{connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
+		log.Fatalf("Cannot connect to db: %v (%s)", err, operationPlace)
 	}
-
-	_, err = conn.Exec(ctx, `
-	create table if not exists url (
-		url_id bigint generated always as identity primary key,
-		alias text not null unique,
-		url text not null
-	);
-	`)
-
+	err = conn.Ping(ctx)
 	if err != nil {
-		return &Storage{connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
+		log.Fatalf("DB is not availavle: %v (%s)", err, operationPlace)
 	}
-
-	_, err = conn.Exec(ctx, `create unique index if not exists url_idx on url(alias)`)
-
-	if err != nil {
-		return &Storage{connection: conn}, cancel, fmt.Errorf("%s: %w", operationPlace, err)
-	}
-
 	return &Storage{connection: conn}, cancel, nil
 }
 
