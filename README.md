@@ -77,15 +77,18 @@ docker-compose --env-file=.env.local build
 ```shell
 docker compose --env-file=.env.local up -d
 ```
-Это запустит сервер. Он будет доступен по адресу `http://localhost:8082` или `http://127.0.0.1:8082`.
+Это запустит сервер.
 
-Далее нужно сделать миграции с помощью `goose`. Если он не установлен, установить этой командой:
+Адрес сервера будет `http://127.0.0.1:8082`. Если что-то пошло не так, то вот [тред](https://stackoverflow.com/questions/62002249/docker-container-sending-request-to-http), где расписаны адреса под разные ОС.
+
+Далее нужно накатить миграции с помощью `goose`. Если он не установлен, установить этой командой (если не установлен go - установите :)):
 
 ```shell
 go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 
 Для того, чтобы накатить миграции, в корне проекта надо выполнить команду:
+
 ```shell
 goose -dir db/migrations postgres "postgresql://DB_USERNAME:DB_PASSWORD@127.0.0.1:5432/DB_NAME?sslmode=disable" up
 ```
