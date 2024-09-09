@@ -60,11 +60,11 @@ func (s *Storage) SaveURL(ctx context.Context, urlToSave string, alias string) (
 	err := s.connection.QueryRow(ctx, query, urlToSave, alias).Scan(&insertedId)
 
 	if ok := errors.As(err, &pgErr); ok && pgErr.Code == pgerrcode.UniqueViolation {
-		return -1, fmt.Errorf("%s: %w", operationPlace, storage.ErrAliasExists)
+		return 0, fmt.Errorf("%s: %w", operationPlace, storage.ErrAliasExists)
 	}
 
 	if err != nil {
-		return -1, fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	return insertedId, nil
@@ -96,7 +96,7 @@ func (s *Storage) DeleteURLByAlias(ctx context.Context, alias string) (int, erro
 	err := s.connection.QueryRow(ctx, query, alias).Scan(&deletedRows)
 
 	if err != nil {
-		return -1, fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	return deletedRows, nil
@@ -111,7 +111,7 @@ func (s *Storage) DeleteURLByURL(ctx context.Context, url string) (int, error) {
 	err := s.connection.QueryRow(ctx, query, url).Scan(&deletedRows)
 
 	if err != nil {
-		return -1, fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	return deletedRows, nil
@@ -138,7 +138,7 @@ func (s *Storage) GetURLIdByURL(ctx context.Context, URL string) (int, error) {
 		return -1, storage.ErrURLNotFound
 	}
 	if err != nil {
-		return -1, fmt.Errorf("%s: %w", operationPlace, err)
+		return 0, fmt.Errorf("%s: %w", operationPlace, err)
 	}
 
 	return urlId, nil
