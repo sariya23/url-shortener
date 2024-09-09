@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 // создание таблицы проходит без ошибок.
 func TestCreateTable(t *testing.T) {
 	ctx := context.Background()
-	storge, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storge, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*storge)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -37,7 +37,7 @@ func TestCreateTable(t *testing.T) {
 // записи в таблицу происходит без ошибок.
 func TestInsertURLInTable(t *testing.T) {
 	ctx := context.Background()
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*storage)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -53,7 +53,7 @@ func TestInsertURLInTable(t *testing.T) {
 // что попытка вставки такого же алиаса приведет к ошибке.
 func TestCannotSaveURLBecauseAliasAlreadyInTable(t *testing.T) {
 	ctx := context.Background()
-	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -74,7 +74,7 @@ func TestCannotSaveURLBecauseAliasAlreadyInTable(t *testing.T) {
 // получение соответсвующего URL по алиасу.
 func TestCanGetURLByAlias(t *testing.T) {
 	ctx := context.Background()
-	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -98,7 +98,7 @@ func TestCanGetURLByAlias(t *testing.T) {
 // попытка получить URL по несуществующему алиасу приведет к ошибке.
 func TestCannotGetURLBecauseItNotExists(t *testing.T) {
 	ctx := context.Background()
-	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -127,7 +127,7 @@ func TestCanDeleteURLByAliasFromTable(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
 			ctx := context.Background()
-			strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+			strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 			defer cancel(*strg)
 			if err != nil {
 				t.Errorf("cannot create table url: (%v)", err)
@@ -160,7 +160,7 @@ func TestCanDeleteURLByURLFromTable(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.caseName, func(t *testing.T) {
 			ctx := context.Background()
-			strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+			strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 			defer cancel(*strg)
 			if err != nil {
 				t.Errorf("cannot create table url: (%v)", err)
@@ -181,7 +181,7 @@ func TestCanDeleteURLByURLFromTable(t *testing.T) {
 // что очистка таблицы происходит без ошибок.
 func TestCanTruncateTable(t *testing.T) {
 	ctx := context.Background()
-	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -197,7 +197,7 @@ func TestCanTruncateTable(t *testing.T) {
 // что получение url_id по URl происходит без ошибок.
 func TestCanGetURLIdByURL(t *testing.T) {
 	ctx := context.Background()
-	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)
@@ -225,7 +225,7 @@ func TestCanGetURLIdByURL(t *testing.T) {
 // ошибка.
 func TestCannotGetURLIdByURLBecauseItNotExists(t *testing.T) {
 	ctx := context.Background()
-	strg, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)
 	if err != nil {
 		t.Errorf("cannot create table url: (%v)", err)

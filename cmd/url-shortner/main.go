@@ -51,7 +51,7 @@ func main() {
 	log.Info("starting url-shortener", slog.String("env", config.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, cancel, err := postgres.New(ctx, os.Getenv("DATABASE_URL"))
+	storage, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*storage)
 
 	if err != nil {
