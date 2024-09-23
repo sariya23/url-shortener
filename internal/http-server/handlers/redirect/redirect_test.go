@@ -1,3 +1,5 @@
+//go:build smoke
+
 package redirect_test
 
 import (

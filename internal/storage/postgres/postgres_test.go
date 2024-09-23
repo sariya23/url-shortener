@@ -1,3 +1,5 @@
+//go:build !smoke
+
 package postgres_test
 
 import (
@@ -73,6 +75,7 @@ func TestCannotSaveURLBecauseAliasAlreadyInTable(t *testing.T) {
 // TestCanGetURLByAlias проверяет
 // получение соответсвующего URL по алиасу.
 func TestCanGetURLByAlias(t *testing.T) {
+
 	ctx := context.Background()
 	strg, cancel, err := postgres.MustNewConnection(ctx, os.Getenv("DATABASE_URL"))
 	defer cancel(*strg)

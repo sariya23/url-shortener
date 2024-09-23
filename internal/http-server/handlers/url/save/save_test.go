@@ -1,3 +1,5 @@
+//go:build smoke
+
 package save_test
 
 import (

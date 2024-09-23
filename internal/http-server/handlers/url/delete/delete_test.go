@@ -1,3 +1,5 @@
+//go:build smoke
+
 package delete_test
 
 import (

@@ -21,11 +21,5 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test URL Delete
-      run: go test -v ./internal/http-server/handlers/url/delete/delete_test.go
-    - name: Test URL Save
-      run: go test -v  ./internal/http-server/handlers/url/save/save_test.go
-    - name: Test Redirect
-      run: go test -v  ./internal/http-server/handlers/redirect/redirect_test.go
-    - name: Test Rundom
-      run: go test -v ./internal/lib/random/random_test.go
+    - name: Smoke tests
+      run: go test --tags=smoke -v ./...
