@@ -114,3 +114,15 @@ docker-compose exec app sh
 ```go
 app # go test ./...
 ```
+
+Запуск smoke-тестов:
+
+```go
+app # go test --tags=smoke ./...
+```
+
+Запуск итеграционных тестов:
+
+```go
+app # go test ./...
+```
